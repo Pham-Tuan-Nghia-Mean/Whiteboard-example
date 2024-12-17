@@ -1,0 +1,7 @@
+export const ACTIONS = {
+  ERASER: "ERASER",
+  ERASER_ALL: "ERASER_ALL",
+  SCRIBBLE: "SCRIBBLE",
+  UNDO: "UNDO",
+  REDO: "REDO"
+};
