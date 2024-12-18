@@ -9,6 +9,8 @@ import { BiSolidEraser } from "react-icons/bi";
 import { PiEraserDuotone } from "react-icons/pi";
 import { FaArrowRotateLeft } from "react-icons/fa6";
 import { FaArrowRotateRight } from "react-icons/fa6";
+import { AiOutlineFullscreen } from "react-icons/ai";
+import { AiOutlineFullscreenExit } from "react-icons/ai";
 import { ACTIONS } from "./constants";
 
 export default function App() {
@@ -21,6 +23,7 @@ export default function App() {
     step: scribbles.length - 1,
     lineList: scribbles,
   });
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   const isPaining = useRef(false);
 
@@ -74,12 +77,12 @@ export default function App() {
   function onPointerMove(e) {
     if (!isPaining.current) return;
     if (action === ACTIONS.ERASER_ELEMENT) {
-      const idElement = e?.target?.attrs?.id
+      const idElement = e?.target?.attrs?.id;
       const newScribbles = scribbles.filter((i) => i.id !== idElement);
       setScribbles(newScribbles);
       return;
     }
-    
+
     const stage = e.target.getStage();
     const point = stage.getPointerPosition();
     let lastLine = scribbles[scribbles.length - 1];
@@ -131,9 +134,9 @@ export default function App() {
   }, [scribbles, isPaining]);
   return (
     <>
-      <div className="relative w-full h-screen overflow-hidden">
+      <div className={`relative ${!isFullScreen ? 'w-1/3 h-96' : 'h-screen w-full'} border`}>
         {/* Controls */}
-        <div className="absolute top-0 z-10 w-full py-2 ">
+        <div className="absolute top-0 z-10 w-full py-2 flex">
           <div className="flex justify-center items-center gap-3 py-2 px-3 w-fit mx-auto border shadow-lg rounded-lg">
             <button
               className={
@@ -217,12 +220,19 @@ export default function App() {
               <IoMdDownload size={"1.5rem"} />
             </button>
           </div>
+          <button onClick={() => setIsFullScreen((pre) => (!pre))}>
+            {!isFullScreen ? (
+              <AiOutlineFullscreen size={"1.5rem"} />
+            ) : (
+              <AiOutlineFullscreenExit size={"1.5rem"} />
+            )}
+          </button>
         </div>
         {/* Canvas */}
         <Stage
           ref={stageRef}
-          width={window.innerWidth}
-          height={window.innerHeight}
+          width={ !isFullScreen ? window.innerWidth /3 : window.innerWidth }
+          height={ !isFullScreen ? window.innerHeight / 2 : window.innerWidth}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
