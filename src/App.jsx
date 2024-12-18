@@ -67,6 +67,7 @@ export default function App() {
         break;
       case ACTIONS.ERASER_ELEMENT:
         setScribbles(newScribbles);
+        isPaining.current = false;
         break;
     }
   }
