@@ -6,6 +6,7 @@ import { IoMdDownload } from "react-icons/io";
 import { LuPencil } from "react-icons/lu";
 import { BiEraser } from "react-icons/bi";
 import { BiSolidEraser } from "react-icons/bi";
+import { PiEraserDuotone } from "react-icons/pi";
 import { FaArrowRotateLeft } from "react-icons/fa6";
 import { FaArrowRotateRight } from "react-icons/fa6";
 import { ACTIONS } from "./constants";
@@ -36,6 +37,8 @@ export default function App() {
 
     const stage = stageRef.current;
     const { x, y } = stage.getPointerPosition();
+    const idElement = stage?.pointerClickStartShape?.attrs?.id;
+    const newScribbles = scribbles.filter((i) => i.id !== idElement);
     const id = uuidv4();
     isPaining.current = true;
 
@@ -61,6 +64,9 @@ export default function App() {
             tool: "eraser",
           },
         ]);
+        break;
+      case ACTIONS.ERASER_ELEMENT:
+        setScribbles(newScribbles);
         break;
     }
   }
@@ -94,13 +100,10 @@ export default function App() {
       return;
     }
     setAction(ACTIONS.UNDO);
-    const newScribbles = [...scribbles]
-    newScribbles.pop()
-    console.log("newScribbles", newScribbles);
+    const newScribbles = [...scribbles];
+    newScribbles.pop();
     setScribbles(newScribbles);
     setHistory((pre) => ({ ...pre, step: pre.step - 1 }));
-    console.log("historyStep", history.step);
-    console.log("history", history.lineList);
   };
 
   const handleRedo = () => {
@@ -148,6 +151,18 @@ export default function App() {
               }}
             >
               <BiEraser size={"2rem"} />
+            </button>
+            <button
+              className={
+                action === ACTIONS.ERASER_ELEMENT
+                  ? "bg-violet-300 p-1 rounded"
+                  : "p-1 hover:bg-violet-100 rounded"
+              }
+              onClick={() => {
+                setAction(ACTIONS.ERASER_ELEMENT);
+              }}
+            >
+              <PiEraserDuotone size={"2rem"} />
             </button>
             <button
               className={
@@ -208,6 +223,7 @@ export default function App() {
           <Layer>
             {scribbles.map((scribble) => (
               <Line
+                id={scribble.id}
                 key={scribble.id}
                 lineCap="round"
                 lineJoin="round"
