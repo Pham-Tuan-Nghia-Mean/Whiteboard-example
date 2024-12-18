@@ -213,8 +213,7 @@ export default function App() {
                 lineJoin="round"
                 points={scribble.points}
                 stroke={scribble.fillColor}
-                strokeWidth={2}
-                tension={scribble.tool === "eraser" ? 30 : 4}
+                strokeWidth={scribble.tool === "eraser" ? 12 : 4}
                 globalCompositeOperation={
                   scribble.tool === "eraser" ? "destination-out" : "source-over"
                 }
