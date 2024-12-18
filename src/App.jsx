@@ -67,13 +67,19 @@ export default function App() {
         break;
       case ACTIONS.ERASER_ELEMENT:
         setScribbles(newScribbles);
-        isPaining.current = false;
+
         break;
     }
   }
   function onPointerMove(e) {
     if (!isPaining.current) return;
-
+    if (action === ACTIONS.ERASER_ELEMENT) {
+      const idElement = e?.target?.attrs?.id
+      const newScribbles = scribbles.filter((i) => i.id !== idElement);
+      setScribbles(newScribbles);
+      return;
+    }
+    
     const stage = e.target.getStage();
     const point = stage.getPointerPosition();
     let lastLine = scribbles[scribbles.length - 1];
