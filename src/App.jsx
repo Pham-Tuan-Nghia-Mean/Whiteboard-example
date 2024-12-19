@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
-import { Layer, Line, Stage } from "react-konva";
-import { useEffect, useRef, useState } from "react";
+import { Layer, Line, Stage, Transformer } from "react-konva";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { IoMdDownload } from "react-icons/io";
 import { LuPencil } from "react-icons/lu";
@@ -13,6 +13,7 @@ import { AiOutlineFullscreen } from "react-icons/ai";
 import { AiOutlineFullscreenExit } from "react-icons/ai";
 import { ACTIONS } from "./constants";
 
+
 export default function App() {
   const line = localStorage.getItem("scribbles");
   const stageRef = useRef();
@@ -24,17 +25,15 @@ export default function App() {
     lineList: scribbles,
   });
   const [isFullScreen, setIsFullScreen] = useState(false);
-
+  const [currentSize, setCurrentSize] = useState({ width: 0, height: 0 });
   const isPaining = useRef(false);
+  const divRef = useRef(null);
 
   function onPointerDown() {
     if (
-      [
-        ACTIONS.ERASER_ALL,
-        ACTIONS.UNDO,
-        ACTIONS.REDO,
-        ACTIONS.ERASER_ALL,
-      ].includes(action)
+      [ACTIONS.ERASER_ALL, ACTIONS.UNDO, ACTIONS.REDO].includes(
+        action
+      )
     )
       return;
 
@@ -70,7 +69,6 @@ export default function App() {
         break;
       case ACTIONS.ERASER_ELEMENT:
         setScribbles(newScribbles);
-
         break;
     }
   }
@@ -132,12 +130,40 @@ export default function App() {
     if (!isPaining.current) return;
     setHistory({ step: scribbles?.length - 1, lineList: scribbles });
   }, [scribbles, isPaining]);
+
+  useLayoutEffect(() => {
+    if (divRef.current) {
+      setCurrentSize({
+        width: divRef.current.offsetWidth,
+        height: divRef.current.offsetHeight,
+      });
+    }
+    if (!currentSize.width && !currentSize.height) return
+    const widthRatio = divRef.current.offsetWidth / currentSize.width
+    const heightRatio = divRef.current.offsetHeight / currentSize.height
+
+    const newArray = scribbles.map((item) => ({
+      ...item,
+      points: item.points.map((point, index) => {
+        if (index === 0) return point * widthRatio;
+        if (index % 2 !== 0) return point * heightRatio;
+        if (index % 2 === 0) return point * widthRatio;
+      }),
+    }));
+    setScribbles(newArray);
+  }, [isFullScreen]);
+
   return (
-    <>
-      <div className={`relative ${!isFullScreen ? 'w-1/3 h-96' : 'h-screen w-full'} border`}>
+    <div className="flex content-center items-center  h-screen">
+      <div
+        className={`relative ${
+          !isFullScreen ? "w-2/3 h-[70%]" : "h-screen w-full"
+        } border `}
+      >
         {/* Controls */}
         <div className="absolute top-0 z-10 w-full py-2 flex">
           <div className="flex justify-center items-center gap-3 py-2 px-3 w-fit mx-auto border shadow-lg rounded-lg">
+      
             <button
               className={
                 action === ACTIONS.SCRIBBLE
@@ -220,7 +246,13 @@ export default function App() {
               <IoMdDownload size={"1.5rem"} />
             </button>
           </div>
-          <button onClick={() => setIsFullScreen((pre) => (!pre))}>
+          <button
+            onClick={() => {
+              setIsFullScreen((pre) => !pre);
+       
+            
+            }}
+          >
             {!isFullScreen ? (
               <AiOutlineFullscreen size={"1.5rem"} />
             ) : (
@@ -229,32 +261,36 @@ export default function App() {
           </button>
         </div>
         {/* Canvas */}
-        <Stage
-          ref={stageRef}
-          width={ !isFullScreen ? window.innerWidth /3 : window.innerWidth }
-          height={ !isFullScreen ? window.innerHeight / 2 : window.innerWidth}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-        >
-          <Layer>
-            {scribbles.map((scribble) => (
-              <Line
-                id={scribble.id}
-                key={scribble.id}
-                lineCap="round"
-                lineJoin="round"
-                points={scribble.points}
-                stroke={scribble.fillColor}
-                strokeWidth={scribble.tool === "eraser" ? 12 : 4}
-                globalCompositeOperation={
-                  scribble.tool === "eraser" ? "destination-out" : "source-over"
-                }
-              />
-            ))}
-          </Layer>
-        </Stage>
+        <div ref={divRef} className="h-full">
+          <Stage
+            ref={stageRef}
+            width={currentSize.width}
+            height={currentSize.height}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+          >
+            <Layer>
+              {scribbles.map((scribble) => (
+                <Line
+                  id={scribble.id}
+                  key={scribble.id}
+                  lineCap="round"
+                  lineJoin="round"
+                  points={scribble.points}
+                  stroke={scribble.fillColor}
+                  strokeWidth={scribble.tool === "eraser" ? 12 : 4}
+                  globalCompositeOperation={
+                    scribble.tool === "eraser"
+                      ? "destination-out"
+                      : "source-over"
+                  }
+                />
+              ))}
+            </Layer>
+          </Stage>
+        </div>
       </div>
-    </>
+    </div>
   );
 }
